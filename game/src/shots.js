@@ -6,7 +6,7 @@
 
 import { ESCAPE_YARDS, FAST_FALL_VELOCITY, GRAVITY, GROUND_Y, JUMP_VELOCITY, PX_PER_YARD, STEP_DT, speedAtYards } from './config.js';
 import { DUCK_HEIGHT, STAND_HEIGHT } from './turkey.js';
-import { KIND_HUNG, KIND_THROWN } from './hazards.js';
+import { KIND_BALE, KIND_HUNG, KIND_THROWN } from './hazards.js';
 import { STATE_RUNNING } from './world.js';
 
 const TITLE_SECONDS = 4;
@@ -127,23 +127,34 @@ export function stageShot(name, world) {
 }
 
 /**
- * Make the frozen run frame read at a glance: the farmer visibly close, a carving knife in the
- * air beside the turkey, corn on the jump line. Only fills gaps the simulation left open.
+ * Make the frozen run frame tell one story: the turkey mid-leap over a hay bale at the top of
+ * its arc, panic feathers and dust still hanging from take-off, a fresh knife threat ahead, the
+ * farmer hot on its tail, corn rewarding the arc. The runway is cleared to the jump line, then
+ * the world is stepped for real — the leap is simulated footage, not a posed demo.
  */
 function stageRunComposition(world) {
   const turkey = world.turkey;
-  if (world.farmer.closeness < 0.5) world.farmer.closeness = 0.5;
-  const onScreen = world.hazards.items.filter((it) => it.x > -40 && it.x < 1280);
-  if (!onScreen.some((it) => it.kind === KIND_THROWN)) {
-    world.hazards.spawn(KIND_THROWN, turkey.x + 250, { high: true, vx: 0 });
+  if (world.farmer.closeness < 0.7) world.farmer.closeness = 0.7;
+  // wipe the whole runway ahead — the frame's only forward hazards are the two staged ones
+  world.hazards.items = world.hazards.items.filter((it) => it.x < turkey.x - 60);
+  // a tall bale one descent-third ahead: at the freeze point it sits dead under the turkey,
+  // close enough that the clearance reads as a dodged-the-bale leap, not a floating bird
+  world.hazards.spawn(KIND_BALE, turkey.x + 196, { tall: true });
+  world.hazards.spawn(KIND_THROWN, turkey.x + 380, { high: true, vx: 0 }); // the next danger
+  world.particles.emitDust(turkey.x - 20, GROUND_Y - 4, 8, world.rng);
+  world.particles.emitFeathers(turkey.x - 10, GROUND_Y - 70, 9, world.rng);
+
+  // leap now, coast just past the apex — descending, about to land on the far side of the bale
+  world.step(STEP_DT, { slide: 0, duck: false, jump: true, confirm: false, pause: false });
+  for (let i = 0; i < 40 && world.state === STATE_RUNNING; i += 1) {
+    world.step(STEP_DT, { slide: 0, duck: false, jump: false, confirm: false, pause: false });
+    if (!turkey.onGround && turkey.vy >= 150) break;
   }
-  // hung blades are a barn/kitchen menace — no rafters in the open farmyard
-  if (world.yards >= 500 && !onScreen.some((it) => it.kind === KIND_HUNG)) {
-    world.hazards.spawn(KIND_HUNG, turkey.x + 470);
-  }
+
   if (world.corn.cobs.length === 0) {
-    for (let i = 0; i < 4; i += 1) {
-      world.corn.cobs.push({ x: turkey.x + 130 + i * 74, y: GROUND_Y - 235 - Math.sin((i / 3) * Math.PI) * 45, bobPhase: i, eaten: false });
+    // corn rides just above the apex — the reward the next leap would reach for
+    for (let i = 0; i < 3; i += 1) {
+      world.corn.cobs.push({ x: turkey.x + 140 + i * 74, y: GROUND_Y - 340 - Math.sin((i / 2) * Math.PI) * 30, bobPhase: i, eaten: false });
     }
   }
 }

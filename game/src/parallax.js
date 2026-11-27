@@ -123,9 +123,16 @@ function drawBarn(ctx, x, baseY, s, body, roof) {
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
-  // hay-loft door
-  ctx.fillStyle = 'rgba(20,10,4,0.55)';
+  // hay-loft door, glowing like an oven down the road — the run's destination, lit at dusk
+  const loftGlow = ctx.createRadialGradient(x, baseY - s * 0.8, 2, x, baseY - s * 0.8, s * 0.5);
+  loftGlow.addColorStop(0, 'rgba(255,150,60,0.55)');
+  loftGlow.addColorStop(1, 'rgba(255,150,60,0)');
+  ctx.fillStyle = loftGlow;
+  ctx.fillRect(x - s * 0.5, baseY - s * 1.3, s, s);
+  ctx.fillStyle = '#ff9d4a';
   ctx.fillRect(x - s * 0.14, baseY - s * 0.95, s * 0.28, s * 0.3);
+  ctx.fillStyle = 'rgba(60,20,4,0.5)';
+  ctx.fillRect(x - s * 0.14, baseY - s * 0.95, s * 0.28, s * 0.08);
 }
 
 function drawSilo(ctx, x, baseY, s) {
@@ -201,8 +208,8 @@ function drawFarmScene(ctx, scrollPx, timeSecs) {
   hillBand(ctx, 532, 12, '#49682f', scrollPx, 0.42, 5.9);
   hillBand(ctx, 552, 10, '#557a35', scrollPx, 0.55, 2.3);
   repeatLayer(ctx, scrollPx, 0.62, 420, (x, i) => {
-    if (propJitter(i, 5) > 0.35) drawFence(ctx, x, 566, 60);
-    else drawHaystack(ctx, x, 566, 34);
+    // fence lines only — haystack mounds here read as fake hazards against the real bales
+    drawFence(ctx, x, 566, propJitter(i, 9) > 0.5 ? 60 : 40);
   });
 }
 

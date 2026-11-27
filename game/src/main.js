@@ -50,6 +50,7 @@ world.best = readBest();
 
 function runShot() {
   stageShot(shotName, world);
+  window.__shotWorld = world; // audit drivers read the staged state (hero-box checks)
   let painted = 0;
   const paint = () => {
     world.draw(ctx);

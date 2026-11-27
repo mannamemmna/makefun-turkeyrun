@@ -6,6 +6,7 @@
 import { ESCAPE_YARDS, GROUND_Y, PAINT, VIEW_H, VIEW_W } from './config.js';
 import { captionText, chunkyEllipse, chunkyRoundRect, chunkyStar, displayText, ellipsePath, featherVane, roundRectPath, setChunkyStyle, verticalGradient } from './art.js';
 import { drawLoomingFarmer } from './farmer.js';
+import { drawCarvingKnife } from './hazards.js';
 import { Turkey, drawTurkey } from './turkey.js';
 
 /** Soft dark vignette so screen text pops at thumbnail size. */
@@ -20,13 +21,14 @@ function vignette(ctx, strength = 0.5) {
 // ---------------------------------------------------------------- title ----
 
 export function drawTitleScreen(ctx, timeSecs, best) {
-  // Vignette over the whole screen first: soft, dark edges
-  vignette(ctx, 0.45);
+  // Poster composition: giant lettering on top, the chase underneath — farmer with raised fork
+  // at the left, a glinting carving knife mid-flight, the hero turkey enormous at the right.
+  vignette(ctx, 0.5);
 
-  // The farmer, full colour, on the left: plaid, overalls, fork raised clear of the panel
-  drawLoomingFarmer(ctx, 115, GROUND_Y + 6, 1.7, 0.98, 1);
+  // the farmer, full colour, looming in at the left edge — fork tip kept clear of the lettering
+  drawLoomingFarmer(ctx, 80, GROUND_Y + 6, 1.7, 0.98, 1);
 
-  // Big hero turkey portrait on the right, wide-eyed, wings flared
+  // hero turkey portrait, half the frame tall, mid-panic on the right
   const pose = new Turkey();
   pose.x = 0;
   pose.y = 0;
@@ -34,76 +36,52 @@ export function drawTitleScreen(ctx, timeSecs, best) {
   pose.animT = timeSecs;
   pose.scareT = 1;
   ctx.save();
-  ctx.translate(1115, GROUND_Y + 4);
-  ctx.scale(2.2, 2.2);
+  ctx.translate(1030, GROUND_Y + 4);
+  ctx.scale(3.15, 3.15);
   drawTurkey(ctx, pose);
   ctx.restore();
 
-  // Integrated menu card in the centre: opaque enough to kill background noise, perfectly framed
-  const cardX = 350;
-  const cardY = 70;
-  const cardW = 580;
-  const cardH = 500;
-  setChunkyStyle(ctx, '#231207');
-  roundRectPath(ctx, cardX, cardY, cardW, cardH, 24);
+  // one carving knife in flight between them, glinting
+  ctx.save();
+  ctx.translate(330, 400);
+  ctx.rotate(-0.55);
+  setChunkyStyle(ctx, '#7d5330');
+  ctx.lineWidth = 9;
+  ctx.beginPath();
+  ctx.moveTo(-70, 26);
+  ctx.lineTo(-24, 9);
+  ctx.stroke();
+  drawCarvingKnife(ctx, 120);
+  ctx.restore();
+  chunkyStar(ctx, 395, 330, 17, PAINT.cream, timeSecs * 0.6);
+  chunkyStar(ctx, 356, 366, 8, 'rgba(255,237,207,0.9)', -timeSecs * 0.4);
+
+  // title lettering: huge, centred high, strong butter-on-dark with a heavy outline
+  displayText(ctx, 'TURKEY RUN', 660, 148, 122, PAINT.butter);
+
+  // tagline ribbon: the gag in four words, clear of the turkey's tail sweep
+  setChunkyStyle(ctx, PAINT.wattle);
+  ctx.beginPath();
+  ctx.moveTo(300, 240);
+  ctx.quadraticCurveTo(600, 208, 900, 240);
+  ctx.lineTo(900, 306);
+  ctx.quadraticCurveTo(600, 274, 300, 306);
+  ctx.closePath();
   ctx.fill();
   ctx.stroke();
+  displayText(ctx, "DON'T BECOME DINNER", 600, 276, 40, PAINT.cream);
 
-  // Inner inset border: autumn gold
-  ctx.strokeStyle = '#6e3f1c';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(cardX + 14, cardY + 14, cardW - 28, cardH - 28);
-
-  const cx = cardX + cardW / 2;
-
-  // Title inside the card: huge, chunky, warm butter
-  displayText(ctx, 'TURKEY RUN', cx, cardY + 92, 86, PAINT.butter);
-
-  // Subtitle: freedom ribbon style
-  displayText(ctx, 'Escape from Thanksgiving', cx, cardY + 148, 30, PAINT.cream);
-
-  // Divider line
-  ctx.strokeStyle = '#4a2c14';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(cardX + 48, cardY + 176);
-  ctx.lineTo(cardX + cardW - 48, cardY + 176);
-  ctx.stroke();
-
-  // Call-to-action button: solid pill, prominent
-  const btnY = cardY + 236;
+  // play prompt: a solid pill anyone can read at postage-stamp size
   const hot = 0.5 + 0.5 * Math.sin(timeSecs * 4);
   setChunkyStyle(ctx, hot > 0.5 ? '#d9532f' : '#b83f1d');
-  roundRectPath(ctx, cx - 210, btnY - 32, 420, 64, 16);
+  roundRectPath(ctx, 440, 606, 400, 66, 18);
   ctx.fill();
   ctx.stroke();
-  displayText(ctx, 'PRESS SPACE TO START', cx, btnY + 10, 32, PAINT.cream);
+  displayText(ctx, 'PRESS SPACE TO RUN', 640, 648, 34, PAINT.cream);
 
-  // Control pills: four separate badges so each mechanic is read instantly
-  const badges = [
-    { key: '\u2191 / W', label: 'JUMP' },
-    { key: '\u2193 / S', label: 'DUCK' },
-    { key: '\u2190 \u2192', label: 'SLIDE' },
-    { key: 'P', label: 'PAUSE' },
-  ];
-  const bW = 110;
-  const bGap = 16;
-  const totalBW = badges.length * bW + (badges.length - 1) * bGap;
-  const bStartX = cx - totalBW / 2;
-  const bY = cardY + 342;
-  badges.forEach((b, i) => {
-    const bx = bStartX + i * (bW + bGap);
-    setChunkyStyle(ctx, '#3a1f0e');
-    roundRectPath(ctx, bx, bY - 26, bW, 52, 10);
-    ctx.fill();
-    ctx.stroke();
-    displayText(ctx, b.key, bx + bW / 2, bY - 2, 19, PAINT.cream);
-    captionText(ctx, b.label, bx + bW / 2, bY + 17, 13, PAINT.butter);
-  });
-
-  // Tagline and best score at the bottom
-  captionText(ctx, 'Run. The oven is already preheated.', cx, cardY + 424, 20, PAINT.cream);
-  if (best > 0) captionText(ctx, `BEST SCORE: ${best}`, cx, cardY + 456, 18, PAINT.corn);
+  // fine print: controls and best score, never the thumbnail's job
+  captionText(ctx, '\u2191 jump \u00b7 \u2193 duck \u00b7 \u2190\u2192 slide \u00b7 P pause', 640, 702, 18, PAINT.butter);
+  if (best > 0) captionText(ctx, `BEST ${best}`, 1240, 40, 20, PAINT.corn, 'right');
 }
 
 // --------------------------------------------------------------- helpers ----
@@ -189,6 +167,44 @@ function drawRoastGag(ctx, cx, cy, s, timeSecs) {
   ctx.fillStyle = 'rgba(255,237,207,0.5)';
   ellipsePath(ctx, -24, -28, 26, 10, -0.4);
   ctx.fill();
+  // fresh butter baste: shiny dollops and a drip, the gag's "just basted" proof
+  ctx.fillStyle = 'rgba(255,244,180,0.85)';
+  for (const [bx, by, br] of [[30, -18, 7], [-6, -40, 5], [58, 6, 6], [-48, -12, 5]]) {
+    ctx.beginPath();
+    ctx.arc(bx, by, br, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.beginPath();
+  ctx.moveTo(30, -12);
+  ctx.quadraticCurveTo(33, 0, 30, 10);
+  ctx.quadraticCurveTo(27, 0, 30, -12);
+  ctx.fill();
+  // meat thermometer plunged in, dial reading DONE — dial kept apart from the bone nubs
+  ctx.save();
+  ctx.translate(95, -18);
+  ctx.rotate(0.9);
+  ctx.strokeStyle = '#9aa4ad';
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, 46);
+  ctx.stroke();
+  chunkyEllipse(ctx, 0, -12, 14, 14, '#cfd8e3');
+  ctx.strokeStyle = PAINT.wattle;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, -12);
+  ctx.lineTo(7, -18);
+  ctx.stroke();
+  ctx.restore();
+  ctx.font = 'bold 15px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = PAINT.ink;
+  ctx.strokeText('DONE', 128, -50);
+  ctx.fillStyle = PAINT.cream;
+  ctx.fillText('DONE', 128, -50);
+  ctx.textAlign = 'left';
   ctx.strokeStyle = 'rgba(255,237,207,0.5)';
   ctx.lineWidth = 4;
   for (let i = 0; i < 3; i += 1) {
@@ -322,6 +338,32 @@ export function drawEscapedScreen(ctx, world) {
   ctx.lineTo(VIEW_W, VIEW_H);
   ctx.closePath();
   ctx.fill();
+
+  // the farm he left behind: barn and silo in dark silhouette on the far hill, moon above them
+  // (kept clear of the freedom fence post at x 180 so neither silhouette fuses into the other)
+  ctx.fillStyle = 'rgba(30,16,32,0.82)';
+  ctx.beginPath();
+  ctx.moveTo(55, 500);
+  ctx.lineTo(55, 430);
+  ctx.lineTo(85, 398);
+  ctx.lineTo(115, 430);
+  ctx.lineTo(115, 500);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillRect(130, 420, 22, 80);
+  ctx.beginPath();
+  ctx.arc(141, 420, 11, Math.PI, 0);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,244,214,0.85)';
+  ctx.beginPath();
+  ctx.arc(95, 320, 24, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(232,190,150,0.5)';
+  ctx.beginPath();
+  ctx.arc(87, 314, 6, 0, Math.PI * 2);
+  ctx.arc(103, 328, 4, 0, Math.PI * 2);
+  ctx.fill();
+
   ctx.fillStyle = '#4c7531';
   ctx.beginPath();
   ctx.moveTo(0, VIEW_H);

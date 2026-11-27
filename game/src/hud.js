@@ -22,8 +22,8 @@ export function drawHud(ctx, world) {
   }
 
   // Score and best, top-centre-left under the hearts.
-  displayText(ctx, String(world.score).padStart(5, '0'), 78, 116, 34, PAINT.cream, 'center');
-  captionText(ctx, `BEST ${String(world.best).padStart(5, '0')}`, 78, 148, 17, PAINT.butter, 'center');
+  displayText(ctx, String(world.score).padStart(5, '0'), 78, 116, 40, PAINT.cream, 'center');
+  captionText(ctx, `BEST ${String(world.best).padStart(5, '0')}`, 78, 150, 18, PAINT.butter, 'center');
 
   // Zone name, top-right.
   const zoneLabel = world.zone === 'farm' ? 'FARMYARD' : world.zone === 'barn' ? 'THE BARN MILE' : 'KITCHEN!';
