@@ -26,35 +26,74 @@ export function drawTitleScreen(ctx, timeSecs, best) {
   vignette(ctx, 0.5);
 
   // the farmer, full colour, looming in at the left edge — fork tip kept clear of the lettering
-  drawLoomingFarmer(ctx, 80, GROUND_Y + 6, 1.7, 0.98, 1);
+  const farmerGlow = ctx.createRadialGradient(110, GROUND_Y - 160, 30, 110, GROUND_Y - 160, 260);
+  farmerGlow.addColorStop(0, 'rgba(255,190,120,0.3)');
+  farmerGlow.addColorStop(1, 'rgba(255,190,120,0)');
+  ctx.fillStyle = farmerGlow;
+  ctx.fillRect(-150, GROUND_Y - 440, 520, 460);
+  drawLoomingFarmer(ctx, 60, GROUND_Y + 6, 1.7, 1, 1);
 
-  // hero turkey portrait, half the frame tall, mid-panic on the right
+  // hero turkey portrait, half the frame tall, caught mid-panic-flight: lifted clear of the
+  // ground over its own shadow, leaning forward into the bolt, dust kicked up behind — the pose
+  // alone must sell "run" at contact-sheet size
   const pose = new Turkey();
   pose.x = 0;
   pose.y = 0;
-  pose.onGround = true;
+  pose.onGround = false;
   pose.animT = timeSecs;
+  pose.flapT = 0.32;
   pose.scareT = 1;
   ctx.save();
-  ctx.translate(1030, GROUND_Y + 4);
+  ctx.globalAlpha = 0.3;
+  ctx.fillStyle = PAINT.ink;
+  ellipsePath(ctx, 1010, GROUND_Y + 14, 96, 16);
+  ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = 'rgba(169,138,95,0.85)';
+  for (const [dx, dy, dr] of [[-120, -30, 17], [-156, -52, 13], [-130, -74, 10], [-178, -24, 9]]) {
+    ctx.beginPath();
+    ctx.arc(1010 + dx, GROUND_Y + dy, dr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.save();
+  ctx.translate(1030, GROUND_Y - 80);
+  ctx.rotate(0.12);
   ctx.scale(3.15, 3.15);
   drawTurkey(ctx, pose);
   ctx.restore();
 
-  // one carving knife in flight between them, glinting
+  // one carving knife in flight, aimed at the turkey: big steel blade, wooden handle toward the
+  // farmer, speed streaks behind it — no fat sparkles that read as magic at thumbnail size
   ctx.save();
-  ctx.translate(330, 400);
-  ctx.rotate(-0.55);
+  ctx.translate(360, 410);
+  ctx.rotate(-0.25);
   setChunkyStyle(ctx, '#7d5330');
-  ctx.lineWidth = 9;
+  ctx.lineWidth = 11;
   ctx.beginPath();
-  ctx.moveTo(-70, 26);
-  ctx.lineTo(-24, 9);
+  ctx.moveTo(-96, 26);
+  ctx.lineTo(-26, 10);
   ctx.stroke();
-  drawCarvingKnife(ctx, 120);
+  drawCarvingKnife(ctx, 180);
   ctx.restore();
-  chunkyStar(ctx, 395, 330, 17, PAINT.cream, timeSecs * 0.6);
-  chunkyStar(ctx, 356, 366, 8, 'rgba(255,237,207,0.9)', -timeSecs * 0.4);
+  ctx.strokeStyle = 'rgba(255,237,207,0.6)';
+  ctx.lineWidth = 5;
+  for (const [sy, sl] of [[388, 66], [414, 92], [440, 56]]) {
+    ctx.beginPath();
+    ctx.moveTo(222, sy);
+    ctx.lineTo(222 + sl, sy - 7);
+    ctx.stroke();
+  }
+  chunkyStar(ctx, 424, 372, 8, 'rgba(255,237,207,0.9)', -timeSecs * 0.4);
+
+  // thick speed lines trailing the hero, overlapping its dust cloud — bird is moving, not props
+  ctx.strokeStyle = 'rgba(255,237,207,0.65)';
+  ctx.lineWidth = 8;
+  for (const [ly, lx0, lx1] of [[430, 730, 850], [490, 690, 860], [550, 745, 855]]) {
+    ctx.beginPath();
+    ctx.moveTo(lx0, ly);
+    ctx.lineTo(lx1, ly);
+    ctx.stroke();
+  }
 
   // title lettering: huge, centred high, strong butter-on-dark with a heavy outline
   displayText(ctx, 'TURKEY RUN', 660, 148, 122, PAINT.butter);
@@ -79,8 +118,7 @@ export function drawTitleScreen(ctx, timeSecs, best) {
   ctx.stroke();
   displayText(ctx, 'PRESS SPACE TO RUN', 640, 648, 34, PAINT.cream);
 
-  // fine print: controls and best score, never the thumbnail's job
-  captionText(ctx, '\u2191 jump \u00b7 \u2193 duck \u00b7 \u2190\u2192 slide \u00b7 P pause', 640, 702, 18, PAINT.butter);
+  // best score corner note; no control legend — it is noise at contact-sheet size
   if (best > 0) captionText(ctx, `BEST ${best}`, 1240, 40, 20, PAINT.corn, 'right');
 }
 

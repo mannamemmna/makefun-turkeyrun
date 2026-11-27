@@ -184,8 +184,8 @@ export function drawLoomingFarmer(ctx, x, baseY, scale, alpha = 0.9, facing = 1)
     ctx.fill();
     ctx.stroke();
   }
-  // torso: red plaid shirt
-  setChunkyStyle(ctx, '#a03a2c');
+  // torso: red plaid shirt, bright enough to read the farmer at contact-sheet size
+  setChunkyStyle(ctx, '#b84334');
   ctx.beginPath();
   ctx.moveTo(-40, -58);
   ctx.quadraticCurveTo(-56, -110, -34, -152);
@@ -253,7 +253,7 @@ export function drawLoomingFarmer(ctx, x, baseY, scale, alpha = 0.9, facing = 1)
   ctx.fill();
   ctx.stroke();
   // raised arm gripping the pitchfork, leaned toward the prey
-  setChunkyStyle(ctx, '#a03a2c');
+  setChunkyStyle(ctx, '#b84334');
   ctx.lineWidth = 13;
   ctx.beginPath();
   ctx.moveTo(32, -142);
@@ -261,26 +261,32 @@ export function drawLoomingFarmer(ctx, x, baseY, scale, alpha = 0.9, facing = 1)
   ctx.stroke();
   ctx.save();
   ctx.translate(66, -184);
-  ctx.rotate(0.15);
-  // wooden shaft, then a steel fork head with unmistakable tines
+  ctx.rotate(0.06);
+  // pitchfork: long wooden shaft up to a slim steel head — four LONG tines, so even at 384px
+  // the silhouette is unmistakably a farm fork and never a brick, mallet or gun barrel
   setChunkyStyle(ctx, '#7d5330');
-  ctx.lineWidth = 8;
+  ctx.lineWidth = 9;
   ctx.beginPath();
-  ctx.moveTo(-12, 34);
-  ctx.lineTo(22, -46);
+  ctx.moveTo(-14, 44);
+  ctx.lineTo(26, -96);
   ctx.stroke();
   setChunkyStyle(ctx, '#cfd8e3');
   ctx.lineWidth = 7;
-  for (let i = -1; i <= 1; i += 1) {
+  ctx.beginPath();
+  ctx.moveTo(12, -96);
+  ctx.lineTo(40, -96);
+  ctx.stroke();
+  ctx.lineWidth = 6;
+  for (const off of [-14, -5, 5, 14]) {
     ctx.beginPath();
-    ctx.moveTo(22 + i * 13, -44);
-    ctx.lineTo(24 + i * 17, -84);
+    ctx.moveTo(26 + off, -96);
+    ctx.lineTo(28 + off * 1.1, -150);
     ctx.stroke();
   }
   ctx.fillStyle = PAINT.cream;
-  for (let i = -1; i <= 1; i += 1) {
+  for (const off of [-14, -5, 5, 14]) {
     ctx.beginPath();
-    ctx.arc(24 + i * 17, -84, 3.4, 0, Math.PI * 2);
+    ctx.arc(28 + off * 1.1, -150, 3.2, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
